@@ -1,0 +1,39 @@
+name: veri-guncelle
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Mevcut karneyi getir
+        run: |
+          git fetch --depth=1 origin data:refs/remotes/origin/data || true
+          git checkout origin/data -- api || true
+
+      - name: Motoru calistir
+        env:
+          FOOTBALL_DATA_KEY: ${{ secrets.FOOTBALL_DATA_KEY }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }}
+        run: node scripts/motor.mjs
+
+      - name: Veriyi data dalina yaz
+        run: |
+          git config user.name  "90meclis-bot"
+          git config user.email "bot@90meclis.local"
+          git add -f api
+          git commit -m "veri: $(date -u +%FT%TZ)" || true
+          git push -f origin HEAD:data
