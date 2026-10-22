@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>90MECLİS — Yapay Zekâ Destekli Futbol Tahminleri</title>
+<meta name="description" content="90MECLİS: Dixon-Coles Poisson modeli ile hesaplanan futbol maç tahminleri, günün kuponu ve şeffaf isabet karnesi.">
+<style>
+:root{--bg:#070c14;--card:#0e1626;--card2:#131f33;--br:#1e2b42;--fg:#e8eef8;--mut:#8194ae;--gr:#10b981;--am:#f59e0b;--rd:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:0 18px}
+a{color:inherit;text-decoration:none}
+header{position:sticky;top:0;z-index:20;background:rgba(7,12,20,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--br)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:62px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.02em}
+.mark{width:34px;height:34px;border-radius:10px;background:var(--gr);color:#04231a;display:grid;place-items:center;font-size:13px;font-weight:800}
+.links{display:flex;gap:22px;font-size:14px;color:var(--mut)}
+.links a:hover{color:var(--fg)}
+.btn{display:inline-block;padding:9px 16px;border-radius:10px;font-weight:600;font-size:14px;border:0;cursor:pointer}
+.btn.g{background:var(--gr);color:#04231a}
+.btn.o{background:var(--card2);color:var(--fg);border:1px solid var(--br)}
+section{padding:44px 0}
+h1{font-size:clamp(28px,5vw,46px);line-height:1.1;letter-spacing:-.03em;font-weight:800}
+h2{font-size:24px;letter-spacing:-.02em;font-weight:700;margin-bottom:4px}
+.sub{color:var(--mut);font-size:14px;margin-bottom:20px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 13px;border-radius:999px;background:var(--card2);border:1px solid var(--br);font-size:12.5px;color:var(--mut)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gr)}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.card{background:var(--card);border:1px solid var(--br);border-radius:16px;padding:18px}
+.stat{text-align:center;padding:16px 10px}
+.stat b{display:block;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.stat span{font-size:11.5px;color:var(--mut)}
+.m{padding:15px;border-radius:14px;background:var(--card2);border:1px solid var(--br)}
+.mt{display:flex;justify-content:space-between;font-size:11.5px;color:var(--mut);margin-bottom:9px}
+.tm{font-weight:600;font-size:14.5px}
+.vs{font-size:11px;color:var(--mut);margin:3px 0}
+.bar{height:4px;border-radius:99px;background:var(--br);overflow:hidden;margin-top:9px}
+.bar i{display:block;height:100%;background:var(--gr)}
+.tag{display:inline-block;padding:3px 9px;border-radius:7px;background:rgba(16,185,129,.13);color:var(--gr);font-size:12px;font-weight:700}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tab{padding:7px 13px;border-radius:9px;background:var(--card2);border:1px solid var(--br);font-size:13px;color:var(--mut);cursor:pointer}
+.tab.on{background:var(--gr);border-color:var(--gr);color:#04231a;font-weight:700}
+.row{display:flex;align-items:center;gap:12px;padding:11px 8px;border-bottom:1px solid var(--br)}
+.row:last-child{border-bottom:0}
+.row .t{width:46px;font-size:11.5px;color:var(--mut)}
+.row .n{flex:1;min-width:0}
+.row .n b{font-size:14px;font-weight:600}
+.row .n small{display:block;color:var(--mut);font-size:11.5px}
+.row .p{text-align:right;min-width:70px}
+.row .p b{font-size:12.5px;color:var(--gr);display:block}
+.row .p small{color:var(--mut);font-size:11px}
+.row .c{text-align:right;width:56px;font-size:12.5px;font-weight:700}
+.cta{background:linear-gradient(135deg,#0e1626,#132a24);border:1px solid var(--br);border-radius:18px;padding:28px;display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+footer{border-top:1px solid var(--br);padding:26px 0;color:var(--mut);font-size:12.5px;text-align:center}
+.load{color:var(--mut);text-align:center;padding:22px;font-size:13.5px}
+.live{color:var(--rd);font-size:10.5px;font-weight:700}
+@media(max-width:760px){.links{display:none}.cta{padding:22px}}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="wrap nav">
+  <a class="logo" href="/"><span class="mark">90</span> 90MECLİS</a>
+  <nav class="links">
+   <a href="#kupon">Günün kuponu</a>
+   <a href="#tahminler">Tahminler</a>
+   <a href="#karne">Karne</a>
+   <a href="#nasil">Nasıl çalışır</a>
+  </nav>
+  <a class="btn g" id="tgBtn" target="_blank" rel="noopener">Telegram</a>
+ </div>
+</header>
+
+<div class="wrap">
+
+ <section>
+  <span class="pill"><span class="dot"></span> Model aktif · <span id="upd">yükleniyor</span></span>
+  <h1 style="margin:16px 0 12px">Sahadaki veriyi,<br>kuponundaki güce çevir.</h1>
+  <p style="color:var(--mut);max-width:600px;margin-bottom:22px">
+   90MECLİS, maçları Dixon-Coles Poisson modeliyle hesaplar. Form, gol ortalaması, ev/deplasman dengesi ve zaman ağırlığı tek bir olasılığa dönüşür. Yorum yok, matematik var.
+  </p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+   <a class="btn g" href="#kupon">Günün kuponunu gör</a>
+   <a class="btn o" href="#nasil">Nasıl çalışır?</a>
+  </div>
+  <div class="grid g4" style="margin-top:26px" id="stats"></div>
+ </section>
+
+ <section id="kupon">
+  <h2>Günün kuponu</h2>
+  <p class="sub">Motorun o gün için en yüksek olasılıklı 3 seçimi · ücretsiz</p>
+  <div class="grid g3" id="kuponBox"><div class="load">yükleniyor…</div></div>
+ </section>
+
+ <section id="karne">
+  <h2>Canlı isabet karnesi</h2>
+  <p class="sub">Her sinyal kaydedilir, maç bitince otomatik işaretlenir. Torpil yok.</p>
+  <div class="card" id="karneBox"><div class="load">yükleniyor…</div></div>
+ </section>
+
+ <section id="tahminler">
+  <h2>Tahminler</h2>
+  <p class="sub">Önümüzdeki 3 günün maçları, her market grubunda modelin en güçlü tarafı</p>
+  <div class="tabs" id="tabs"></div>
+  <div class="card" id="list"><div class="load">yükleniyor…</div></div>
+ </section>
+
+ <section id="nasil">
+  <h2>Nasıl çalışır?</h2>
+  <p class="sub">Üç adım, hiç abartı yok</p>
+  <div class="grid g3">
+   <div class="card"><div style="color:var(--gr);font-size:12px;font-weight:700">01 · VERİ</div><b style="display:block;margin:7px 0 5px">Veri toplama</b><span style="color:var(--mut);font-size:13.5px">Fikstür, geçmiş sonuçlar ve puan durumu her 30 dakikada bir otomatik çekilir.</span></div>
+   <div class="card"><div style="color:var(--gr);font-size:12px;font-weight:700">02 · MODEL</div><b style="display:block;margin:7px 0 5px">Olasılık hesabı</b><span style="color:var(--mut);font-size:13.5px">Dixon-Coles Poisson modeli her maç için gol beklentisi ve tüm marketlerin olasılığını üretir.</span></div>
+   <div class="card"><div style="color:var(--gr);font-size:12px;font-weight:700">03 · KARNE</div><b style="display:block;margin:7px 0 5px">Şeffaf sonuç</b><span style="color:var(--mut);font-size:13.5px">Verilen her sinyal kaydedilir, sonuçlandığında isabet oranı yeniden hesaplanır.</span></div>
+  </div>
+ </section>
+
+ <section>
+  <div class="cta">
+   <div>
+    <b style="font-size:18px">Günün kuponu Telegram'a düşsün</b>
+    <p style="color:var(--mut);font-size:13.5px;margin-top:4px">Kupon, sürpriz maç uyarısı ve güncellemeler 90MECLİS kanalında.</p>
+   </div>
+   <a class="btn g" id="tgBtn2" target="_blank" rel="noopener">Kanala katıl</a>
+  </div>
+ </section>
+
+ <footer>
+  90MECLİS · tahmin sitesi, bahis almaz · 18+ · yatırım tavsiyesi değildir
+ </footer>
+</div>
+
+<script>
+const DATA = 'https://raw.githubusercontent.com/KULLANICI/90meclis/data/api';
+const TG = 'https://t.me/KANAL_ADIN';
+
+document.getElementById('tgBtn').href = TG;
+document.getElementById('tgBtn2').href = TG;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const saat = iso => new Date(iso).toLocaleString('tr-TR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+
+async function j(p){ const r = await fetch(`${DATA}/${p}?t=${Date.now()}`,{cache:'no-store'}); if(!r.ok) throw 0; return r.json(); }
+
+function stat(b,s){ return `<div class="card stat"><b>${b}</b><span>${s}</span></div>`; }
+
+async function basla(){
+  let meta = {};
+  try { meta = await j('meta.json'); } catch(e){}
+  $('#upd').textContent = meta.updated ? saat(meta.updated) : 'veri bekleniyor';
+  $('#stats').innerHTML =
+    stat(meta.matches||0,'analiz edilen maç') +
+    stat(meta.leagues||0,'lig') +
+    stat('%'+(meta.rate??0),'canlı isabet') +
+    stat(meta.settled||0,'sonuçlanan sinyal');
+
+  try {
+    const k = await j('kupon.json');
+    $('#kuponBox').innerHTML = k.picks?.length ? k.picks.map(p => `
+      <div class="m">
+        <div class="mt"><span>${esc(p.league)}</span><span>${saat(p.time)}</span></div>
+        <div class="tm">${esc(p.match.split(' - ')[0])}</div>
+        <div class="vs">vs</div>
+        <div class="tm">${esc(p.match.split(' - ')[1]||'')}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--br)">
+          <span class="tag">${esc(p.label)}</span>
+          <b style="font-size:13px">%${p.prob}</b>
+        </div>
+        <div class="bar"><i style="width:${p.prob}%"></i></div>
+      </div>`).join('') : '<div class="load">Bugün için uygun kupon bulunamadı.</div>';
+  } catch(e){ $('#kuponBox').innerHTML = '<div class="load">Kupon verisi henüz yok.</div>'; }
+
+  try {
+    const karne = await j('karne.json');
+    const s = karne.filter(x=>x.status!=='pending');
+    const w = s.filter(x=>x.status==='won').length;
+    const oran = s.length ? (w/s.length*100).toFixed(1) : '0.0';
+    $('#karneBox').innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
+        <div><div style="font-size:34px;font-weight:800;color:var(--gr)">%${oran}</div>
+        <div style="color:var(--mut);font-size:13px">${w} / ${s.length} sinyal doğru</div></div>
+        <div style="display:flex;gap:18px;font-size:13px;color:var(--mut)">
+          <span><b style="color:var(--fg)">${karne.filter(x=>x.status==='pending').length}</b> beklemede</span>
+          <span><b style="color:var(--fg)">${karne.length}</b> toplam sinyal</span>
+        </div>
+      </div>
+      <div class="bar" style="height:8px;margin-top:14px"><i style="width:${oran}%"></i></div>
+      <div style="margin-top:18px">${karne.slice().reverse().slice(0,12).map(x=>`
+        <div class="row"><div class="t">${esc((x.date||'').slice(5))}</div>
+        <div class="n"><b>${esc(x.match)}</b><small>${esc(x.label)} · ${esc(x.league)}</small></div>
+        <div class="c" style="color:${x.status==='won'?'var(--gr)':x.status==='lost'?'var(--rd)':'var(--mut)'}">
+          ${x.status==='won'?'KAZANDI':x.status==='lost'?'KAYBETTİ':'bekliyor'}</div></div>`).join('')}</div>`;
+  } catch(e){ $('#karneBox').innerHTML = '<div class="load">Karne henüz boş.</div>'; }
+
+  let data = null;
+  try { data = await j('tahminler.json'); } catch(e){ $('#list').innerHTML = '<div class="load">Tahmin verisi henüz yok.</div>'; return; }
+
+  const ligler = ['Tümü', ...new Set(data.matches.map(m=>m.league))];
+  $('#tabs').innerHTML = ligler.map((l,i)=>`<div class="tab${i===0?' on':''}" data-l="${esc(l)}">${esc(l)}</div>`).join('');
+
+  function ciz(l){
+    const rows = data.matches.filter(m => l==='Tümü' || m.league===l);
+    $('#list').innerHTML = rows.length ? rows.map(m=>`
+      <div class="row">
+        <div class="t">${saat(m.date)}</div>
+        <div class="n"><b>${esc(m.home)} — ${esc(m.away)}</b><small>${esc(m.league)} · beklenen gol ${m.xgH} - ${m.xgA}</small></div>
+        <div class="p"><b>${esc(m.picks[0].label)}</b><small>%${m.picks[0].prob}</small></div>
+        <div class="c">${m.picks[1]?`<div style="color:var(--mut);font-weight:400;font-size:11px">${esc(m.picks[1].label)} %${m.picks[1].prob}</div>`:''}</div>
+      </div>`).join('') : '<div class="load">Bu ligde maç yok.</div>';
+  }
+  ciz('Tümü');
+  $('#tabs').onclick = e => {
+    if(!e.target.dataset.l) return;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+    e.target.classList.add('on');
+    ciz(e.target.dataset.l);
+  };
+}
+basla();
+</script>
+</body>
+</html>
